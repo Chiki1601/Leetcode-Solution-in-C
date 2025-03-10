@@ -1,36 +1,45 @@
-class Solution:
-    def countOfSubstrings(self, word: str, k: int) -> int:
-        frequencies = [{}, {}]
-        for v in "aeiou":
-            frequencies[0][v] = 1
-        
-        response, currentK, vowels, extraLeft, left = 0, 0, 0, 0, 0
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
-        for right, rightChar in enumerate(word):
-            if rightChar in frequencies[0]:
-                frequencies[1][rightChar] = frequencies[1].get(rightChar, 0) + 1
-                if frequencies[1][rightChar] == 1:
-                    vowels += 1
-            else:
-                currentK += 1
+bool isVowel(char c) {
+    return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+}
 
-            while currentK > k:
-                leftChar = word[left]
-                if leftChar in frequencies[0]:
-                    frequencies[1][leftChar] -= 1
-                    if frequencies[1][leftChar] == 0:
-                        vowels -= 1
-                else:
-                    currentK -= 1
-                left += 1
-                extraLeft = 0
+long long atLeastK(char* word, int k) {
+    int n = strlen(word);
+    long long ans = 0;
+    int consonants = 0;
+    int left = 0;
+    int vowelMap[26] = {0};
+    int vowelCount = 0;
 
-            while vowels == 5 and currentK == k and left < right and word[left] in frequencies[0] and frequencies[1][word[left]] > 1:
-                extraLeft += 1
-                frequencies[1][word[left]] -= 1
-                left += 1
+    for (int right = 0; right < n; right++) {
+        if (isVowel(word[right])) {
+            vowelMap[word[right] - 'a']++;
+            if (vowelMap[word[right] - 'a'] == 1) {
+                vowelCount++;
+            }
+        } else {
+            consonants++;
+        }
 
-            if currentK == k and vowels == 5:
-                response += (1 + extraLeft)
+        while (vowelCount == 5 && consonants >= k) {
+            ans += n - right;
+            if (isVowel(word[left])) {
+                vowelMap[word[left] - 'a']--;
+                if (vowelMap[word[left] - 'a'] == 0) {
+                    vowelCount--;
+                }
+            } else {
+                consonants--;
+            }
+            left++;
+        }
+    }
+    return ans;
+}
 
-        return response
+long long countOfSubstrings(char* word, int k) {
+    return atLeastK(word, k) - atLeastK(word, k + 1);
+}
